@@ -1,0 +1,277 @@
+#include <iostream>
+#include <string>
+#include <ctime>
+#include <cstdlib>
+
+using namespace std;
+
+struct pacijent{
+	char naziv[30];
+	int dan, mjesec, godina;
+	char spol;
+	int ai, bi, ci, di, ei;
+};
+
+#include "red_pokazivac.h"
+//#include "red_polje.h"
+
+
+void generiraj(int n, pacijent polje[]){
+	for (int i = 0; i < n; i++){
+		polje[i].ai = rand() % 251 + 50;
+		polje[i].bi = rand() % 251 + 50;
+		polje[i].ci = rand() % 5 + 1;
+		polje[i].di = rand() % 4 + 1;
+		if (polje[i].ci == 3){
+			do{
+				polje[i].ei = rand() % 5 + 1;
+			} while (polje[i].ei == 5);
+		}
+		else polje[i].ei = rand() % 5 + 1;
+	}
+}
+
+void ispisi_svih(int n, pacijent polje[]) {
+	for (int i = 0; i < n; i++) {
+		cout << "--------------------------------------------------" << endl;
+		cout << "pacijent " << i + 1 << ": " << endl;
+		cout << "--------------------------------------------------" << endl;
+		cout << "Vremenska razlika dolaska nakon prethodnog: " << polje[i].ai << endl;
+		cout << "Vrijeme provedeno kod doktora: " << polje[i].bi << endl;
+		cout << "Prioritet pacijenta: ";
+		cout << "Prioritet: ";
+		switch (polje[i].ci){
+		case 1: cout << "Hitni slucaj" << endl; break;
+		case 2: cout << "Invalidi" << endl; break;
+		case 3: cout << "Trudnice" << endl; break;
+		case 4: cout << "Djeca mladja od 6 godina" << endl; break;
+		case 5: cout << "Ostali pacijenti" << endl; break;
+		}
+		cout << "Vrsta usluge: ";
+		switch (polje[i].di){
+		case 1: cout << "Pregled" << endl; break;
+		case 2: cout << "Previjanje" << endl; break;
+		case 3: cout << "Recepti" << endl; break;
+		case 4: cout << "Uputnice" << endl; break;
+		}
+		cout << "Odjel: ";
+		switch (polje[i].ei){
+		case 1: cout << "obiteljska medicina" << endl; break;
+		case 2: cout << "oftamologija" << endl; break;
+		case 3: cout << "dermatovenerologija" << endl; break;
+		case 4: cout << "ginekologija" << endl; break;
+		case 5: cout << "urologija" << endl; break;
+		}
+	}
+	cout << endl;
+}
+
+void ispis(Queue *Q){
+	element tekuci;
+	tekuci = Q->front;
+	int j = 1;
+	do {
+		tekuci = tekuci->next;
+		cout << "Pacijent " << j << " (" << tekuci->value.naziv << "): " << endl;
+		cout << "----------------------" << endl;
+		cout << "Vremenska razlika dolaska nakon prethodnog: " << tekuci->value.ai << endl;
+		cout << "Vrijeme provedeno kod doktora: " << tekuci->value.bi << endl;
+		cout << "Prioritet pacijenta: ";
+		cout << "Prioritet: ";
+		switch (tekuci->value.ci){
+		case 1: cout << "Hitni slucaj" << endl; break;
+		case 2: cout << "Invalidi" << endl; break;
+		case 3: cout << "Trudnice" << endl; break;
+		case 4: cout << "Djeca mladja od 6 godina" << endl; break;
+		case 5: cout << "Ostali pacijenti" << endl; break;
+		}
+		cout << "Vrsta usluge: ";
+		switch (tekuci->value.di){
+		case 1: cout << "Pregled" << endl; break;
+		case 2: cout << "Previjanje" << endl; break;
+		case 3: cout << "Recepti" << endl; break;
+		case 4: cout << "Uputnice" << endl; break;
+		}
+		cout << "Odjel: ";
+		switch (tekuci->value.ei){
+		case 1: cout << "obiteljska medicina" << endl; break;
+		case 2: cout << "oftamologija" << endl; break;
+		case 3: cout << "dermatovenerologija" << endl; break;
+		case 4: cout << "ginekologija" << endl; break;
+		case 5: cout << "urologija" << endl; break;
+		}
+		cout << endl << endl;
+
+		j++;
+	} while (tekuci != Q->rear);
+}
+
+void sortiraj(Queue *red) {
+	pacijent *polje = new pacijent[20];
+	pacijent pomocni;
+	int ii = 0;
+	while (IsEmptyQ(red) == false) {
+		pomocni = FrontQ(red);
+		polje[ii] = pomocni; ii++;
+		DeQueueQ(red);
+	}
+
+	pacijent tmp;
+	int max;
+	for (int i = ii - 1; i >= 1; i--) {
+		max = 0;
+		for (int j = 1; j <= i; j++) {
+			if (polje[j].ci >= polje[max].ci) {
+				max = j;
+			}
+		}
+		tmp = polje[max];
+		polje[max] = polje[i];
+		polje[i] = tmp;
+	}
+
+	for (int i = 0; i < ii; i++) {
+		EnQueueQ(polje[i], red);
+	}
+
+}
+
+void zapisi_u_red(Queue *red, int n, pacijent polje[]){
+	cout << "Unos podataka o pacijentima: " << endl;
+	for (int i = 0; i < n; i++) {
+		cout << endl << "--------------------------------------------------" << endl;
+		cout << "Pacijent " << i + 1 << ": " << endl;
+		cout << "--------------------------------------------------" << endl;
+		cout << "Ime i prezime pacijenta: ";
+		cin.ignore();
+		cin.getline(polje[i].naziv, 30);
+		cout << "Datum rodjenja (dan mj god): ";
+		cin >> polje[i].dan >> polje[i].mjesec >> polje[i].godina;
+		cout << "Spol (m/z): ";
+		do{
+			cin >> polje[i].spol;
+		} while (polje[i].spol != 'm' && polje[i].spol != 'z');
+		EnQueueQ(polje[i], red);
+		sortiraj(red);
+	}
+	cout << "--------------------------------------------------" << endl;
+	cout << "Pacijenti stariji od 25 godina, na cekanju kod oftamologa: " << endl;
+	for (int i = 0; i < n; i++) {
+		if (polje[i].ei == 2 && polje[i].godina<1998) {
+			cout << polje[i].naziv << endl << endl;
+		}
+	}
+
+}
+
+void brisanje(pacijent polje[], int n){
+	Queue red, pomocni_red;
+	InitQ(&red);
+	InitQ(&pomocni_red);
+	pacijent pom; 
+
+	for (int i = 0; i < n; i++) {
+		EnQueueQ(polje[i], &red);
+	}
+	sortiraj(&red);
+
+	cout << "Stanje reda (prema prioritetu): " << endl << endl;
+	ispis(&red);
+
+	cout << "\nIzbacivanje pacijenata iz reda..." << endl;
+	while (IsEmptyQ(&red) == false) {
+		pom = FrontQ(&red);
+		DeQueueQ(&red);
+		if (pom.ci == 2 && pom.godina < 1963 && pom.ei ==1) 
+			cout << "Izbacujemo: " << pom.naziv << endl;
+		else 
+			EnQueueQ(pom, &pomocni_red);
+	}
+
+	while (IsEmptyQ(&pomocni_red) == false) {
+		EnQueueQ(FrontQ(&pomocni_red), &red);
+		DeQueueQ(&pomocni_red);
+	}
+
+	cout << "\nIspis reda nakon izbacivanja: " << endl << endl;
+	ispis(&red);
+}
+
+
+void rekurzija(Queue *red, Queue *novi_red, int size, int r_br) {
+	pacijent pom;
+
+	if (r_br == 0) { return; }
+
+	pom = FrontQ(red);
+	if (pom.di==3 || pom.di==4){
+		DeQueueQ(red);
+	}
+	else {
+		EnQueueQ(pom, red);
+		DeQueueQ(red);
+	}
+
+	rekurzija(red, novi_red, size, --r_br);
+
+	if (pom.di == 3 || pom.di == 4){
+		EnQueueQ(pom, novi_red);
+	}
+
+}
+
+void brzi_red(pacijent polje[], int n) {
+	pacijent pom;
+	Queue red, novi_red;
+	InitQ(&red); 
+	InitQ(&novi_red);	
+
+	for (int i = 0; i < n; i++) {
+		EnQueueQ(polje[i], &red);
+	}
+	sortiraj(&red);
+
+	cout << "\nStanje reda (prema prioritetu): " << endl << endl;
+	ispis(&red);
+
+	cout << "\nOtvaranje brzog reda samo za izdavanje recepata i uputnica.\n\nPrikaz glavnog reda, nakon otvaranja brzog reda: " << endl << endl;
+	rekurzija(&red, &novi_red, n, n);
+
+	ispis(&red);
+
+	cout << "\n\nPrikaz brzog reda: " << endl << endl;
+	ispis(&novi_red);
+}
+
+int main(){
+	srand(time(NULL));	
+	int opcija = 0; 
+	int n;
+	Queue red;
+	InitQ(&red);
+	cout << "Unesite broj za generiranje petorki" << endl; 
+	cin >> n;
+	pacijent *polje = new pacijent[n];
+	generiraj(n, polje);
+	ispisi_svih(n, polje);
+	do{
+		cout << "Odaberite opciju " << endl;
+		cout << "----IZBORNIK----" << endl; 
+		cout << "1. Dodavanje zapisa u red. Soritranje reda prema prioritetu. " << endl; 
+		cout << "2. Brisanje svih osoba s invaliditetom starijih od 50 godina na cekanju za previjanje kod doktora obiteljske medicine." << endl; 
+		cout << "3. Otvaranje brzog reda." << endl; 
+		cin >> opcija; 
+	switch (opcija){
+	case 1:
+		zapisi_u_red(&red, n, polje);
+		break;
+	case 2: 
+		brisanje(polje, n);
+		break;
+	case 3:
+		brzi_red(polje, n);
+		break;
+	}
+	} while (opcija != 9);
+return 0; 
+}
